@@ -28,6 +28,7 @@ to handle values without keys.
 from __future__ import absolute_import
 
 import yaml
+import six
 
 from mr3px.common import decode_string
 
@@ -66,7 +67,10 @@ def dump_inline(data, allow_unicode=None, encoding=None, safe=False):
     if out.endswith(u'\n...'):
         out = out[:-3].rstrip()
 
-    return out.encode(encoding)
+    if six.PY2:
+        return out.encode(encoding)
+    else:
+        return out
 
 
 class YAMLProtocolBase(object):
@@ -93,11 +97,16 @@ class YAMLProtocolBase(object):
             return yaml.load(unicode_data)
 
     def dump(self, data):
-        return dump_inline(
-            data,
-            allow_unicode=self.allow_unicode,
-            encoding=self.encoding or 'utf_8',  # never return Unicode
-            safe=self.safe)
+        if six.PY2:
+            return dump_inline(
+                data,
+                allow_unicode=self.allow_unicode,
+                encoding=self.encoding or 'utf_8',  # never return Unicode
+                safe=self.safe)
+        else:
+            return dump_inline(
+                data,
+                safe=self.safe)
 
 
 class SafeYAMLProtocol(YAMLProtocolBase):

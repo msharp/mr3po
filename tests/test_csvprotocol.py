@@ -32,7 +32,7 @@ class CsvProtocolTestCase(unittest.TestCase):
     def test_drop_quotes(self):
         p = CsvProtocol()
         line = "\"foo\",  \"bar\",  \"baz\",  1,  2,  3.333"
-        res = [u'foo', u'bar', u'baz', u'1', u'2', u'3.333'] 
+        res = [u'foo', u'bar', u'baz', u'1', u'2', u'3.333']
         self.assertEqual(p.read(line), (None, res))
 
     def test_alternate_quotes(self):
@@ -42,13 +42,13 @@ class CsvProtocolTestCase(unittest.TestCase):
         res = [u'foo', u'bar', u'baz', u'1', u'2', u'3.333']
         self.assertEqual(p1.read(line), (None, res))
         self.assertEqual(p2.read(line), (None, res))
-    
+
     def test_read_unicode(self):
         p = CsvProtocol()
         line = '"Paul",  "Erdős",  "foo",  1,  2,  3.333'
         res = [u'Paul', u'Erdős', u'foo', u'1', u'2', u'3.333']
         self.assertEqual(p.read(line), (None, res))
-    
+
     def test_trailing_separator(self):
         p = CsvProtocol()
         line = '"foo",  "bar",  "baz",  1,  2,  3.333, '
@@ -63,12 +63,12 @@ class CsvProtocolTestCase(unittest.TestCase):
 
     def test_format_strings(self):
         p = CsvProtocol()
-        io = [('Benoit Mandelbrot',  u'"Benoit Mandelbrot"'), 
-              (u'Paul Erdős',  u'"Paul Erdős"'), 
-              (101,  u'101'), 
+        io = [('Benoit Mandelbrot',  u'"Benoit Mandelbrot"'),
+              (u'Paul Erdős',  u'"Paul Erdős"'),
+              (101,  u'101'),
               (2.718281,  u'2.718281')]
         for t in io:
-            self.assertEqual(p.fmt(t[0]), t[1]) 
+            self.assertEqual(p.fmt(t[0]), t[1])
 
     def test_alternate_delimiter(self):
         p = CsvProtocol(delimiter='|')

@@ -49,9 +49,7 @@ class KeyedJsonProtocolTestCase(unittest.TestCase):
         p = KeyedJsonProtocol()
         key = "54321"
         val = {'foo': 123, 'bar': 456, 'baz': 'oh noes!'}
-        expected = '54321\t{"baz": "oh noes!", "foo": 123, "bar": 456}'
-        # TODO _ order of dictionary not guaranteed.
-        # test this with a regex?
+        expected = '54321\t{"bar": 456, "baz": "oh noes!", "foo": 123}'
         self.assertEqual(p.write(key, val), expected)
 
     def test_write_line_list(self):

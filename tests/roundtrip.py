@@ -25,6 +25,7 @@ Finally, p.write() should always return a str, and p.read() should always
 return a tuple of two values.
 """
 from decimal import Decimal
+import six
 
 try:
     import unittest2 as unittest

@@ -21,12 +21,11 @@ Useful as an internal protocol when you need the key ordering
 of the Hadoop system and a structured data value.
 """
 import json
-import types
-from common import decode_string
+
+from .common import decode_string
+
 
 class KeyedJsonProtocol(object):
-
-    READ_WRITE_TYPES = (types.DictType, types.ListType, types.TupleType)
 
     def read(self, line):
         """Parse a line of text input and return a tuple with 
@@ -34,16 +33,16 @@ class KeyedJsonProtocol(object):
         """
         k, v = line.split('\t', 1)
         k_str = decode_string(k)
-        v_obj = json.loads(decode_string(v)) 
-        if type(v_obj) not in self.READ_WRITE_TYPES:
+        v_obj = json.loads(decode_string(v))
+        if not isinstance(v_obj, (dict, list, tuple)):
             raise ValueError("Value is not an acceptable type")
-        return (k_str, v_obj)
+        return k_str, v_obj
 
     def write(self, key, value):
         """Write the key(str) and value(list|dict|tuple) 
         as a line of text separated by a tab
         NOTE: tuples will create json lists/arrays
         """
-        if type(value) not in self.READ_WRITE_TYPES:
+        if not isinstance(value, (dict, list, tuple)):
             raise ValueError("Value is not an acceptable type")
-        return '{0}\t{1}'.format(key, json.dumps(value))
+        return '{0}\t{1}'.format(key, json.dumps(value, sort_keys=True))

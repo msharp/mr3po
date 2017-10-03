@@ -14,6 +14,7 @@
 # limitations under the License.
 
 from decimal import Decimal
+import six
 
 try:
     import unittest2 as unittest
@@ -38,7 +39,7 @@ class GoodInputTestCase(unittest.TestCase):
             " (1,'David Marin',25.25,0xC0DE,NULL);")
         self.assertEqual(
             (key, value),
-            (u'user', [1, u'David Marin', 25.25, '\xc0\xde', None]))
+            (u'user', [1, u'David Marin', 25.25, six.b('\xc0\xde'), None]))
 
     def test_complete_insert(self):
         p = MySQLCompleteInsertProtocol()
@@ -49,7 +50,7 @@ class GoodInputTestCase(unittest.TestCase):
             (key, value), (u'user', {u'id': 1,
                                      u'name': u'David Marin',
                                      u'score': 25.25,
-                                     u'data': '\xc0\xde',
+                                     u'data': six.b('\xc0\xde'),
                                      u'misc': None}))
 
     def test_extended_insert(self):
@@ -60,7 +61,7 @@ class GoodInputTestCase(unittest.TestCase):
             " (2,'Nully Nullington',NULL,NULL,NULL);")
         self.assertEqual(
             (key, value),
-            (u'user', [[1, u'David Marin', 25.25, '\xc0\xde', None],
+            (u'user', [[1, u'David Marin', 25.25, six.b('\xc0\xde'), None],
                        [2, u'Nully Nullington', None, None, None]]))
 
     def test_extended_complete_insert(self):
@@ -73,7 +74,7 @@ class GoodInputTestCase(unittest.TestCase):
             (key, value), (u'user', [{u'id': 1,
                                       u'name': u'David Marin',
                                       u'score': 25.25,
-                                      u'data': '\xc0\xde',
+                                      u'data': six.b('\xc0\xde'),
                                       u'misc': None},
                                      {u'id': 2,
                                       u'name': u'Nully Nullington',
@@ -129,7 +130,7 @@ class EncodingTestCase(unittest.TestCase):
             (key, value), (u'user', {u'id': 3,
                                      u'name': u'Paul Erdős',
                                      u'score': 0,
-                                     u'data': '\x0e\x2d\x05',
+                                     u'data': six.b('\x0e\x2d\x05'),
                                      u'misc': None, }))
 
         key, value = p.read(
@@ -140,7 +141,7 @@ class EncodingTestCase(unittest.TestCase):
             (key, value), (u'user', {u'id': 3,
                                      u'name': u'Paul Erdös',
                                      u'score': 0,
-                                     u'data': '\x0e\x2d\x05',
+                                     u'data': six.b('\x0e\x2d\x05'),
                                      u'misc': None, }))
 
     def test_alternate_encoding(self):
@@ -151,9 +152,9 @@ class EncodingTestCase(unittest.TestCase):
             " (3,'Paul Erdős',0,0x0E2D05,NULL);")
         self.assertEqual(
             (key, value), (u'user', {u'id': 3,
-                                     u'name': 'Paul Erdős'.decode('latin-1'),
+                                     u'name': six.u('Paul Erdős'),
                                      u'score': 0,
-                                     u'data': '\x0e\x2d\x05',
+                                     u'data': six.b('\x0e\x2d\x05'),
                                      u'misc': None}))
 
 

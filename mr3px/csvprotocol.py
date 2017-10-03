@@ -20,13 +20,14 @@ Definitely NOT recommended for use as an internal protocol.
 """
 
 import csv
-import types
-import StringIO
-from common import decode_string
+import six
+
+from .common import decode_string
+
 
 class CsvProtocol(object):
 
-    QUOTABLE_TYPES = [types.StringType,types.StringTypes,types.UnicodeType]
+    QUOTABLE_TYPES = [six.text_type, six.string_types, six.binary_type]
 
     def __init__(self, delimiter=',', quotechar='"'):
         self.delimiter = delimiter
@@ -37,14 +38,15 @@ class CsvProtocol(object):
         read a line of csv data and output a list of values
         converts to unicode using common.decode_string
         """
-        l = csv.reader(StringIO.StringIO(line), 
+        data = []
+        l = csv.reader(six.StringIO(line),
                 delimiter=self.delimiter,
                 quotechar=self.quotechar, 
                 skipinitialspace=True)
         for r in l:
             data = [decode_string(f).strip() for f in r]
             break
-        return (None, data)
+        return None, data
 
     def write(self, _, data):
         """

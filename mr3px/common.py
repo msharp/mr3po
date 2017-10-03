@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import six
+
 
 def decode_string(s, encoding=None):
     """Decode *s* into a unicode string, if it isn't alreaady.
@@ -19,7 +21,7 @@ def decode_string(s, encoding=None):
     If *encoding* is ``None`` (the default), assume *s* is in UTF-8,
     and if it's not, fall back to latin-1.
     """
-    if isinstance(s, unicode):
+    if isinstance(s, six.text_type):
         return s
 
     if not encoding:

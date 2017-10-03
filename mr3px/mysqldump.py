@@ -21,6 +21,9 @@ multi-row ``INSERT`` statements.
 """
 from decimal import Decimal
 import re
+import binascii
+
+import six
 
 from mr3px.common import decode_string
 
@@ -57,7 +60,7 @@ MYSQL_STRING_ESCAPES = {
 }
 
 MYSQL_STRING_ESCAPES_FOR_TRANSLATE = dict(
-    (ord(c), u'\\%s' % esc) for esc, c in MYSQL_STRING_ESCAPES.iteritems())
+    (ord(c), u'\\%s' % esc) for esc, c in six.iteritems(MYSQL_STRING_ESCAPES))
 
 
 class AbstractMySQLInsertProtocol(object):
@@ -136,7 +139,10 @@ def parse_insert(sql, complete=False, decimal=False, encoding=None,
         elif m.group('string') is not None:  # parse empty strings!
             current_row.append(unescape_string(m.group('string')))
         elif m.group('hex'):
-            current_row.append(m.group('hex').decode('hex'))
+            if six.PY2:
+                current_row.append(m.group('hex').decode('hex'))
+            else:
+                current_row.append(binascii.unhexlify(m.group('hex')))
         elif m.group('number'):
             current_row.append(
                 parse_number(m.group('number'), decimal=decimal))
@@ -191,7 +197,7 @@ def parse_insert(sql, complete=False, decimal=False, encoding=None,
 
 def dump_as_insert(table, data, complete=False, encoding=None,
                    output_tab=False, single_row=False):
-    if not table or not isinstance(table, basestring):
+    if not table or not isinstance(table, six.string_types):
         raise ValueError('Bad table name')
 
     if not data:
@@ -205,7 +211,7 @@ def dump_as_insert(table, data, complete=False, encoding=None,
     if complete:
         rows = []
         for row_num, row_data in enumerate(data):
-            row_cols, row = zip(*sorted(row_data.iteritems()))
+            row_cols, row = zip(*sorted(six.iteritems(row_data)))
             if cols is None:
                 cols = row_cols
             elif cols != row_cols:
@@ -230,7 +236,10 @@ def dump_as_insert(table, data, complete=False, encoding=None,
         (' ' + format_cols(cols)) if cols else '',
         ', '.join(format_row(row) for row in rows))
 
-    return sql.encode(encoding or 'utf_8')
+    if six.PY2:
+        return sql.encode(encoding or 'utf_8')
+    else:
+        return sql
 
 
 def format_identifier(identifier):
@@ -249,9 +258,9 @@ def format_row(items):
 def format_value(x):
     if x is None:
         return 'NULL'
-    elif isinstance(x, (int, long, float, Decimal)):
+    elif isinstance(x, (int, float, Decimal)):
         return str(x)
-    elif isinstance(x, unicode):
+    elif isinstance(x, six.text_type):
         return "'%s'" % escape_unicode_string(x)
     elif isinstance(x, str):
         return '0x%s' % x.encode('hex').upper()
@@ -270,7 +279,7 @@ def unescape_string(s):
 
 
 def escape_unicode_string(u):
-    if not isinstance(u, unicode):
+    if not isinstance(u, six.text_type):
         raise TypeError
     # TODO: translate() was pretty slow last I checked; maybe try regex?
     return u.translate(MYSQL_STRING_ESCAPES_FOR_TRANSLATE)
