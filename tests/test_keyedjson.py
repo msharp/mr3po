@@ -19,6 +19,7 @@ except ImportError:
 
 from mr3px.keyedjson import KeyedJsonProtocol
 from tests.roundtrip import RoundTripTestCase
+import six
 
 
 class KeyedJsonProtocolRoundTripTestCase(RoundTripTestCase):
@@ -37,42 +38,42 @@ class KeyedJsonProtocolTestCase(unittest.TestCase):
         p = KeyedJsonProtocol()
         line = '54321\t{"foo": 123, "bar": 456, "baz": "oh noes!"}'
         expected = ("54321", {'foo': 123, 'bar': 456, 'baz': 'oh noes!'})
-        self.assertEqual(p.read(line), expected)
+        self.assertEqual(p.read(six.b(line)), expected)
 
     def test_read_line_list(self):
         p = KeyedJsonProtocol()
         line = '54321\t["foo", "bar", 456,  789]'
         expected = ("54321", ['foo', 'bar', 456, 789])
-        self.assertEqual(p.read(line), expected)
+        self.assertEqual(p.read(six.b(line)), expected)
 
     def test_write_line_dict(self):
         p = KeyedJsonProtocol()
         key = "54321"
         val = {'foo': 123, 'bar': 456, 'baz': 'oh noes!'}
-        expected = '54321\t{"bar": 456, "baz": "oh noes!", "foo": 123}'
+        expected = six.b('54321\t{"bar": 456, "baz": "oh noes!", "foo": 123}')
         self.assertEqual(p.write(key, val), expected)
 
     def test_write_line_list(self):
         p = KeyedJsonProtocol()
         key = "54321"
         val = ['foo', 'bar', 456, 789]
-        expected = '54321\t["foo", "bar", 456, 789]'
+        expected = six.b('54321\t["foo", "bar", 456, 789]')
         self.assertEqual(p.write(key, val), expected)
 
     def test_write_line_tuple(self):
         p = KeyedJsonProtocol()
         key = "54321"
         val = ('foo', 'bar', 456, 789)
-        expected = '54321\t["foo", "bar", 456, 789]'
+        expected = six.b('54321\t["foo", "bar", 456, 789]')
         self.assertEqual(p.write(key, val), expected)
 
     def test_read_unkeyed_data_raises_exception(self):
         p = KeyedJsonProtocol()
-        self.assertRaises(ValueError,  p.read,  "foo")
+        self.assertRaises(ValueError,  p.read,  six.b("foo"))
 
     def test_read_invalid_data_raises_exception(self):
         p = KeyedJsonProtocol()
-        self.assertRaises(ValueError,  p.read,  "foo\nbar")
+        self.assertRaises(ValueError,  p.read,  six.b("foo\nbar"))
 
     def test_write_invalid_data_raises_exception(self):
         p = KeyedJsonProtocol()

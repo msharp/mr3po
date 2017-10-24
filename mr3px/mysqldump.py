@@ -22,6 +22,7 @@ multi-row ``INSERT`` statements.
 from decimal import Decimal
 import re
 import binascii
+from .common import *
 
 import six
 
@@ -239,7 +240,7 @@ def dump_as_insert(table, data, complete=False, encoding=None,
     if six.PY2:
         return sql.encode(encoding or 'utf_8')
     else:
-        return sql
+        return encode_string(sql, encoding)
 
 
 def format_identifier(identifier):

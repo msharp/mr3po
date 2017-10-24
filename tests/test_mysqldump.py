@@ -28,6 +28,7 @@ from mr3px.mysqldump import MySQLExtendedInsertProtocol
 from mr3px.mysqldump import MySQLInsertProtocol
 
 from tests.roundtrip import RoundTripTestCase
+from mr3px.common import encode_string
 
 
 class GoodInputTestCase(unittest.TestCase):
@@ -87,17 +88,17 @@ class BadInputTestCase(unittest.TestCase):
 
     def test_empty(self):
         p = MySQLExtendedInsertProtocol()
-        self.assertRaises(ValueError, p.read, '')
+        self.assertRaises(ValueError, p.read, encode_string(''))
 
     def test_non_insert(self):
         p = MySQLExtendedInsertProtocol()
-        self.assertRaises(ValueError, p.read, 'USE test;')
+        self.assertRaises(ValueError, p.read, encode_string('USE test;'))
 
     def test_missing_close_paren(self):
         p = MySQLExtendedInsertProtocol()
         self.assertRaises(
             ValueError,
-            p.read, "INSERT INTO `user` VALUES (1,'David Marin'")
+            p.read, encode_string("INSERT INTO `user` VALUES (1,'David Marin'"))
 
     def test_rows_and_cols_dont_match(self):
         p = MySQLExtendedInsertProtocol()
@@ -106,16 +107,16 @@ class BadInputTestCase(unittest.TestCase):
         self.assertRaises(
             ValueError,
             p.read,
-            "INSERT INTO `user` (`id`) VALUES"
-            " (1,'David Marin',25.25,0xC0DE,NULL);")
+            encode_string("INSERT INTO `user` (`id`) VALUES"
+            " (1,'David Marin',25.25,0xC0DE,NULL);"))
 
     def test_differing_row_sizes(self):
         p = MySQLExtendedInsertProtocol()
         self.assertRaises(
             ValueError,
             p.read,
-            "INSERT INTO `user` VALUES"
-            " (1,'David Marin',25.25,0xC0DE,NULL), (2);")
+            encode_string("INSERT INTO `user` VALUES"
+            " (1,'David Marin',25.25,0xC0DE,NULL), (2);"))
 
 
 class EncodingTestCase(unittest.TestCase):
@@ -130,7 +131,7 @@ class EncodingTestCase(unittest.TestCase):
             (key, value), (u'user', {u'id': 3,
                                      u'name': u'Paul Erdős',
                                      u'score': 0,
-                                     u'data': six.b('\x0e\x2d\x05'),
+                                     u'data': encode_string('\x0e\x2d\x05'),
                                      u'misc': None, }))
 
         key, value = p.read(
@@ -141,7 +142,7 @@ class EncodingTestCase(unittest.TestCase):
             (key, value), (u'user', {u'id': 3,
                                      u'name': u'Paul Erdös',
                                      u'score': 0,
-                                     u'data': six.b('\x0e\x2d\x05'),
+                                     u'data': encode_string('\x0e\x2d\x05'),
                                      u'misc': None, }))
 
     def test_alternate_encoding(self):
@@ -150,6 +151,8 @@ class EncodingTestCase(unittest.TestCase):
         key, value = p.read(
             "INSERT INTO `user` (`id`, `name`, `score`, `data`, `misc`) VALUES"
             " (3,'Paul Erdős',0,0x0E2D05,NULL);")
+
+
         self.assertEqual(
             (key, value), (u'user', {u'id': 3,
                                      u'name': six.u('Paul Erdős'),
@@ -184,8 +187,8 @@ class OutputTabTestCase(unittest.TestCase):
         row2 = p.write('score', [0, None, None])
         row3 = p.write('user', [2, u'Nully Nullington', None, None, None])
 
-        self.assertEqual(row1.split('\t')[0], row2.split('\t')[0])
-        self.assertNotEqual(row1.split('\t')[0], row3.split('\t')[0])
+        self.assertEqual(row1.split(six.b('\t'))[0], row2.split(six.b('\t'))[0])
+        self.assertNotEqual(row1.split(six.b('\t'))[0], row3.split(six.b('\t'))[0])
 
     def test_no_tabs(self):
         p = MySQLInsertProtocol()
@@ -193,7 +196,7 @@ class OutputTabTestCase(unittest.TestCase):
         row1 = p.write('score', [1, 1.0, 1.25])
         row2 = p.write('score', [0, None, None])
 
-        self.assertNotEqual(row1.split('\t')[0], row2.split('\t')[0])
+        self.assertNotEqual(row1.split(six.b('\t'))[0], row2.split(six.b('\t'))[0])
 
 
 class MySQLInsertProtocolTestCase(RoundTripTestCase):

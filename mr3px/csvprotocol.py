@@ -39,13 +39,17 @@ class CsvProtocol(object):
         converts to unicode using common.decode_string
         """
         data = []
-        l = csv.reader(six.StringIO(line),
-                delimiter=self.delimiter,
-                quotechar=self.quotechar, 
-                skipinitialspace=True)
-        for r in l:
-            data = [decode_string(f).strip() for f in r]
+        if six.PY3 and type(line) == six.binary_type:
+            line = line.decode('utf-8')
+
+        csv_reader = csv.reader(six.StringIO(line),
+                       delimiter=self.delimiter,
+                       quotechar=self.quotechar,
+                       skipinitialspace=True)
+        for cr in csv_reader:
+            data = [decode_string(f).strip() for f in cr]
             break
+
         return None, data
 
     def write(self, _, data):
@@ -53,11 +57,11 @@ class CsvProtocol(object):
         Output a list of values as a comma-separated string
         """
         out = [self.fmt(d) for d in data]
-        return ",".join(out)
+        return ",".join(out).encode('utf-8')
 
-    def fmt(self,val):
+    def fmt(self, val):
         """
-        Format the values for common CSV output 
+        Format the values for common CSV output
         """
         if type(val) in self.QUOTABLE_TYPES:
             s = decode_string(val)

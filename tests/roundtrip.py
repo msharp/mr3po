@@ -78,8 +78,9 @@ class RoundTripTestCase(unittest.TestCase):
         for p in self.PROTOCOLS:
             for key, value in self.ROUND_TRIP_KEY_VALUES:
                 encoded = p.write(key, value)
+
                 self.assertEqual(
-                    type(encoded), str,
+                    type(encoded), str if six.PY2 else bytes,
                     '%r.write() should encode (%r, %r) as a bytestring,'
                     ' not %r' % (p, key, value, encoded))
 
@@ -110,7 +111,7 @@ class RoundTripTestCase(unittest.TestCase):
                     return
 
                 self.assertIsInstance(
-                    encoded, str,
+                    encoded, str if six.PY2 else bytes,
                     '%r.write() should encode (%r, %r) as a bytestring,'
                     ' not %r' % (p, key, value, encoded))
 
@@ -123,6 +124,7 @@ class RoundTripTestCase(unittest.TestCase):
                     len(decoded), 2,
                     '%r.read() should encode %r as a tuple with two items,'
                     ' not %r' % (p, encoded, decoded))
+
 
                 reencoded = p.write(*decoded)
 

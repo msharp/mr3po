@@ -18,6 +18,7 @@ try:
     unittest  # quiet "redefinition of unused ..." warning from pyflakes
 except ImportError:
     import unittest
+import six
 
 from mock import call
 from mock import Mock
@@ -157,17 +158,17 @@ class CachingTestCase(unittest.TestCase):
         # wrap load() with a mock so we can track calls to it
         p.load = Mock(wraps=p.load)
 
-        self.assertEqual(p.read('[a, 1]\t2'), (['a', 1], 2))
-        self.assertEqual(p.read('[a, 1]\t3'), (['a', 1], 3))
-        self.assertEqual(p.read('[b, 2]\t3'), (['b', 2], 3))
-        self.assertEqual(p.read('[a, 1]\t3'), (['a', 1], 3))
+        self.assertEqual(p.read(six.b('[a, 1]\t2')), (['a', 1], 2))
+        self.assertEqual(p.read(six.b('[a, 1]\t3')), (['a', 1], 3))
+        self.assertEqual(p.read(six.b('[b, 2]\t3')), (['b', 2], 3))
+        self.assertEqual(p.read(six.b('[a, 1]\t3')), (['a', 1], 3))
 
         self.assertEqual(
             p.load.call_args_list,
-            [call('[a, 1]'), call('2'),
+            [call(six.b('[a, 1]')), call(six.b('2')),
              # '[a, 1]' isn't decoded again because it's in the cache
-             call('3'),
+             call(six.b('3')),
              # '3' is decoded repeatedly because we don't cache values
-             call('[b, 2]'), call('3'),
+             call(six.b('[b, 2]')), call(six.b('3')),
              # '[a, 1]' is re-decoded because the cache only holds one key
-             call('[a, 1]'), call('3')])
+             call(six.b('[a, 1]')), call(six.b('3'))])

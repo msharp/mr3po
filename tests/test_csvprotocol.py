@@ -19,6 +19,7 @@ except ImportError:
     import unittest
 
 from mr3px.csvprotocol import CsvProtocol, CsvSingleQuotedProtocol
+import six
 
 
 class CsvProtocolTestCase(unittest.TestCase):
@@ -59,7 +60,7 @@ class CsvProtocolTestCase(unittest.TestCase):
         p = CsvProtocol()
         data = ['foo', 'bar', 'baz',  1,  2,  3.333]
         res = u"\"foo\",\"bar\",\"baz\",1,2,3.333"
-        self.assertEqual(p.write(None, data), res)
+        self.assertEqual(p.write(None, data), six.b(res))
 
     def test_format_strings(self):
         p = CsvProtocol()

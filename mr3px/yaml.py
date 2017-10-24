@@ -30,7 +30,7 @@ from __future__ import absolute_import
 import yaml
 import six
 
-from mr3px.common import decode_string
+from mr3px.common import decode_string, encode_string
 
 
 __all__ = [
@@ -64,13 +64,10 @@ def dump_inline(data, allow_unicode=None, encoding=None, safe=False):
         line_break='\n',
         width=float('inf')).rstrip()
 
-    if out.endswith(u'\n...'):
+    if out.endswith(six.u('\n...')):
         out = out[:-3].rstrip()
 
-    if six.PY2:
-        return out.encode(encoding)
-    else:
-        return out
+    return out.encode(encoding)
 
 
 class YAMLProtocolBase(object):
@@ -97,16 +94,11 @@ class YAMLProtocolBase(object):
             return yaml.load(unicode_data)
 
     def dump(self, data):
-        if six.PY2:
-            return dump_inline(
-                data,
-                allow_unicode=self.allow_unicode,
-                encoding=self.encoding or 'utf_8',  # never return Unicode
-                safe=self.safe)
-        else:
-            return dump_inline(
-                data,
-                safe=self.safe)
+        return dump_inline(
+            data,
+            allow_unicode=self.allow_unicode,
+            encoding=self.encoding or 'utf_8',  # never return Unicode
+            safe=self.safe)
 
 
 class SafeYAMLProtocol(YAMLProtocolBase):
@@ -118,7 +110,9 @@ class SafeYAMLProtocol(YAMLProtocolBase):
     Note that this will encode tuples as lists.
     """
     def read(self, line):
-        key_str, value_str = line.split('\t')
+        key_str, value_str = decode_string(line, self.encoding).split('\t')
+        key_str = encode_string(key_str, self.encoding)
+        value_str = encode_string(value_str, self.encoding)
 
         # cache last key
         if key_str != getattr(self, '_key_cache', [None])[0]:
@@ -129,7 +123,10 @@ class SafeYAMLProtocol(YAMLProtocolBase):
         return key, self.load(value_str)
 
     def write(self, key, value):
-        return '%s\t%s' % (self.dump(key), self.dump(value))
+        de_key = decode_string(self.dump(key), encoding=self.encoding)
+        de_value = decode_string(self.dump(value), encoding=self.encoding)
+        return encode_string('%s\t%s' % (de_key, de_value), self.encoding)
+        # return six.b('%s\t%s' % (self.dump(key), self.dump(value)))
 
 
 class YAMLProtocol(SafeYAMLProtocol):

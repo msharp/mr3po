@@ -32,3 +32,21 @@ def decode_string(s, encoding=None):
             return s.decode('latin_1')
     else:
         return s.decode(encoding)
+
+
+def encode_string(s, encoding=None):
+    """
+    Encode string to the given encoding.
+    PY3 if the string is a byte type return as it is
+    """
+    if type(s) == six.binary_type:
+        return s
+
+    if not encoding:
+        try:
+            return s.encode('utf_8')
+        except:
+            # this should always work
+            return s.encode('latin_1')
+    else:
+        return s.encode(encoding)
